@@ -1,0 +1,94 @@
+---
+title: "Samples"
+author: "Lukas Stammler"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    fig_height: 4
+    fig_width: 5
+    highlight: pygments
+    theme: yeti
+    code_download: false
+    toc: yes
+    number_sections: yes
+    toc_float: yes
+bibliography: book.bib
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(openintro)   # for simple areas under curve
+library(patchwork)   # arrange ggplot objects
+```
+
+# Sampling distribution
+
+```{r}
+# Funktion zur Illustration der Stichprobenverteilung
+
+# samplDistr(data, sampleSize, nSamples)
+# data - vektor
+# sampleSize - Stichprobenumfang der einzelnen Stichproben
+# nSamples - Anzahl Stichproben
+
+# Output:
+# Histogramm der Verteilung der Stichprobenmittelwerte
+# rot: Populationskennzahlen - Mittelwert und SE (gepunktet)
+# gruen: Stichprobenkennzahlen - Mittelwert der Mittelwerte und SD
+# tabellarische Ausgaben der Kennzahlen
+# datensatz mit den Ergebnissen der einzelnen Stichproben
+
+# Bsp:
+# a <- rnorm(10000, 100, 10)
+# b <- samplDistr(a, 100, 1000)
+
+samplDistr <- function(data, sampleSize, nSamples){
+        probe <- data.frame(matrix(nrow = nSamples, ncol = 3))
+        colnames(probe) <- c("estMean", "estVar", "estSD")
+        
+        meanPop <- mean(data)
+        sdPop <- sd(data)
+        seMean <- sdPop/sqrt(sampleSize) # SE of the mean
+
+        for (i in 1:nSamples){
+                newSample <- sample(data, size=sampleSize)
+                probe$estMean[i] <- mean(newSample)
+                probe$estVar[i] <- var(newSample)
+                probe$estSD[i] <- sd(newSample)
+        }
+        
+        meanSampleMeans <- mean(probe$estMean)
+        sdSampleMeans <- sd(probe$estMean)
+        table <- rbind(meanPop, meanSampleMeans, seMean, sdSampleMeans)
+        print(table)
+        
+        
+        par(mfrow = c(1, 1))
+        subtitle <- paste("Stichprobenumfang = ", sampleSize, ", Anzahl Stichproben = ", nSamples)        
+        hist(probe$estMean, prob = TRUE,
+                col = "lightblue",
+                main = "Verteilung Stichprobenmittelwerte", 
+                xlab = subtitle,
+                ylab = "Dichte")
+        abline(v = meanPop, col = "red", lwd = 2)
+        abline(v = meanPop + seMean, col = "red", lty = "dotted")
+        abline(v = meanPop - seMean, col = "red", lty = "dotted")
+        abline(v = meanSampleMeans, col = "darkgreen", lwd = 2)
+        abline(v = meanSampleMeans + sdSampleMeans, col = "darkgreen", lty = "dotted")
+        abline(v = meanSampleMeans - sdSampleMeans, col = "darkgreen", lty = "dotted")
+        curve(dnorm(x, mean=meanPop, sd=seMean), col = "red", add=TRUE)
+        curve(dnorm(x, mean=meanSampleMeans, sd=sdSampleMeans), col = "darkgreen", add=TRUE)
+        
+        return(probe)}
+
+
+a <- rnorm(10000, 100, 10)
+b <- samplDistr(a, sampleSize = 10, nSamples = 1000)
+```
+

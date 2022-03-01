@@ -1,0 +1,105 @@
+---
+title: "ggplot"
+author: "Lukas Stammler"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    fig_height: 4
+    fig_width: 5
+    highlight: pygments
+    theme: yeti
+    code_download: false
+    toc: yes
+    number_sections: yes
+    toc_float: yes
+bibliography: book.bib
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(openintro)   # for simple areas under curve
+```
+
+# cool packages
+
+```{r}
+library(patchwork)   # arrange ggplot objects
+```
+
+# 95% confidence intervalls
+
+```{r}
+data <- ToothGrowth
+
+data %>% 
+    ggplot(., aes(x = dose, y = len)) + 
+    stat_summary(fun = mean, geom = "point", color = "red", size = 2) + 
+    stat_summary(fun.data = mean_cl_normal, geom = "errorbar", width = .2) 
+```
+
+# normal distribution
+
+## histogramm with normal curve
+
+```{r}
+data <- data.frame(x = rnorm(1000))
+
+data %>% 
+    ggplot(., aes(x = x)) +
+    geom_histogram(aes(y = ..density..), 
+                   bins = 15, fill = "skyblue", color = "white") +
+    stat_function(fun = dnorm, 
+                  args = list(mean = mean(data$x), sd = sd(data$x)),
+                  color = "red", size = 1)
+```
+
+## area under the normal curve 
+
+Einfacher geht es mit openintro::normTail()
+
+```{r}
+data <- data.frame(x = rnorm(1000))
+
+data %>% 
+    ggplot(., aes(x = x)) +
+    geom_area(stat = "function", 
+              fun = dnorm, 
+              args = list(mean = mean(data$x), sd = sd(data$x)), 
+              fill = "skyblue", 
+              alpha = .5, 
+              xlim = c(-3, -1)) +   # define area
+    stat_function(fun = dnorm, 
+                  args = list(mean = mean(data$x), 
+                              sd = sd(data$x)),
+                  color = "red", size = 1) 
+
+data %>% 
+    ggplot(., aes(x = x)) +
+    geom_area(stat = "function", fun = dnorm, 
+              args = list(mean = mean(data$x), sd = sd(data$x)), 
+              fill = "chartreuse1", alpha = .5, xlim = c(-1, 2)) +
+    stat_function(fun = dnorm, 
+                  args = list(mean = mean(data$x), 
+                              sd = sd(data$x)),
+                  color = "red", size = 1)
+
+data %>% 
+    ggplot(., aes(x = x)) +
+    geom_area(stat = "function", fun = dnorm, 
+              args = list(mean = mean(data$x), sd = sd(data$x)), 
+              fill = "skyblue", alpha = .5, xlim = c(-4, -1.96)) +
+    geom_area(stat = "function", fun = dnorm, 
+              args = list(mean = mean(data$x), sd = sd(data$x)), 
+              fill = "skyblue", alpha = .5, xlim = c(1.96, 4)) +
+    stat_function(fun = dnorm, xlim = c(-4, 4),
+                  args = list(mean = mean(data$x), 
+                              sd = sd(data$x)),
+                  color = "red", size = 1)
+```
+
