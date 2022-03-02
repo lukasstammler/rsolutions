@@ -103,3 +103,14 @@ data %>%
                   color = "red", size = 1)
 ```
 
+# greek letter in axis label
+
+```{r}
+df <- tibble(A = rnorm(100),
+             B = rnorm(100))
+
+ggplot(df, aes(x = A, y = B)) +
+        geom_point() +
+        xlab(expression(paste(mu, "V")))
+```
+

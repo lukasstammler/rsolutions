@@ -25,8 +25,6 @@ library(knitr)
 library(kableExtra)
 library(openintro)   # for simple areas under curve
 library(patchwork)   # arrange ggplot objects
-library(rstatix)     # t.test output as tibble 
-library(stargazer)   # summary tables and regression tables
 ```
 
 # Cool packages
@@ -66,4 +64,3 @@ shark.tab %>%
   row_spec(dim(shark.tab)[1], bold = T) %>% # format last row
   column_spec(1, italic = T) # format first column
 ```
-

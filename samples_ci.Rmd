@@ -12,7 +12,6 @@ output:
     toc: yes
     number_sections: yes
     toc_float: yes
-bibliography: book.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -26,6 +25,26 @@ library(kableExtra)
 library(openintro)   # for simple areas under curve
 library(patchwork)   # arrange ggplot objects
 ```
+
+
+# Cool packages
+
+## interpretCI
+
+Vignette: https://cran.r-project.org/web/packages/interpretCI/vignettes/Package_interpretCI.html
+
+```{r}
+library(interpretCI)
+
+res <- meanCI(mtcars, mpg)$result 
+res %>% 
+  kbl(digits = 2) %>% 
+  kable_styling()
+
+
+meanCI(mtcars, mpg) %>% plot()
+```
+
 
 # Sampling distribution
 
@@ -91,4 +110,91 @@ samplDistr <- function(data, sampleSize, nSamples){
 a <- rnorm(10000, 100, 10)
 b <- samplDistr(a, sampleSize = 10, nSamples = 1000)
 ```
+
+# confidence intervall
+
+## Funktionen zur Berechnung
+
+```{r}
+ci.norm <- function(var, level = .95){
+        m <- mean(var)
+        s <- sd(var)
+        n <- length(var)
+        se <- s/(sqrt(n))
+        q <- (level+1)/2
+        ci.lo <- m - qnorm(q) * se
+        ci.hi <- m + qnorm(q) * se
+        result <- cbind(m, s, n, se, level, ci.lo, ci.hi)
+        print(result)
+}
+
+ci.t <- function(var, level = .95){
+        m <- mean(var)
+        s <- sd(var)
+        n <- length(var)
+        se <- s/(sqrt(n))
+        q <- (level+1)/2
+        ci.lo <- m - qt(q, df = n-1) * se
+        ci.hi <- m + qt(q, df = n-1) * se
+        result <- cbind(m, s, n, se, level, ci.lo, ci.hi)
+        print(result)
+}
+
+# Beispiel
+set.seed(1234)
+var <- rnorm(50, -166.3, 6.39) 
+ci.norm(var, level = .9)
+ci.t(var, level = .9)
+```
+
+## Simulate CI
+
+```{r, fig.dim=c(5, 7)}
+ci.sim <- function(data, samplesize, samples){
+  COL <- c("black", "steelblue", "salmon")
+  m <- mean(data)
+  m.title <- round(m, 3)
+  s <- sd(data)
+  n <- samplesize
+  k <- samples
+  se <- s/sqrt(n)
+  
+  means <- c()
+  SE <- c()
+  
+  for(i in 1:k){
+    temp <- sample(data, n, replace = FALSE)
+    means[i] <- mean(temp, na.rm = TRUE)
+    SE[i]    <- sd(temp)/sqrt(n)
+  }
+  xR <- m + 4 * c(-1, 1) * se
+  yR <- c(0.7, k + 3)
+  plot(xR, yR,
+       type = "n",
+       #xlab = (expression(mu)),
+       xlab = bquote(paste(mu, "=", .(m.title))),
+       ylab = "",
+       axes = FALSE,
+       main = paste("Samplesize =", n, ", Samples =", k),
+       cex.main = .8)
+  abline(v = m, lty = 2, col = COL[1])
+  for(i in 1:k){
+    ci <- means[i] + c(-1, 1) * 1.96 * SE[i]
+    if(abs(means[i] - m) > 1.96 * SE[i]){
+      col <- COL[3]
+      points(means[i], i, cex = 1.4, col = col)
+      lines(ci, rep(i, 2), col = col, lwd = 4)
+    } else {
+      col = COL[2]
+    }
+    points(means[i], i, pch = 20, cex = 1.2, col = col)
+    lines(ci, rep(i, 2), col = col)
+  }
+}
+
+# Beispiel
+data <- rnorm(10000)
+ci.sim(data = data, samplesize = 500, samples = 50)
+```
+
 
